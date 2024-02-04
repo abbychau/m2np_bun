@@ -63,7 +63,10 @@ async function dbInsert(table: string, data: any) {
     const keys = Object.keys(data);
     const values: string[] = Object.values(data);
     const sql = `INSERT INTO ${table} (${keys.join(',')}) VALUES (${keys.map(() => '?').join(',')})`;
-    return await dbExec(sql, values);
+
+    const promisePool = pool.promise();
+    const [rows, fields] = await promisePool.query(sql, values) as any;
+    return rows.insertId;
 }
 
 async function dbUpdate(table: string, data: any, where: any) {

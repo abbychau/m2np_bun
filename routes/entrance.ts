@@ -9,8 +9,52 @@ const entrance = new Hono();
 
 function hashPassword(password: string) : string {
     const res = createHash("sha256").update(password + 'SECRET').digest('hex');//TODO: use salt
-    return res;    
+    return res.substring(0, 32);    
 }
+
+// authWithGithubToken
+entrance.post("/authWithGithubToken", async c => {
+    const body = await c.req.json();
+    const token = body.token;
+
+    const res = await fetch('https://api.github.com/user', {
+        headers: {
+            "Accept": "application/vnd.github+json",
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    const json:any = await res.json();
+    if(res.status !== 200) {
+        return c.json({error: "Invalid token"}, 401);
+    }
+    console.log(json);
+
+
+    const email = json.email;
+    
+    // check if user exists
+    let user = await db.Row("SELECT * FROM users WHERE email = ?", [email]);
+
+    if (!user) {
+        user = {};
+        // create user
+        user.id = await db.Insert("users", {
+            "email": email,
+            "display_name": json.name
+        });
+    }
+
+    // generate token
+    const randSource = time() + randomUUID();
+    const newToken = hashPassword(randSource);
+
+    // save token
+    await redisClient.set(`token:${newToken}`, user.id, {EX: 60*60*24*30});
+
+    return c.json({"token": newToken});
+
+});
 
 // login
 entrance.post("/login", async c => {
