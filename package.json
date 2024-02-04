@@ -1,0 +1,22 @@
+{
+  "name": "m2np_bun",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^20.11.13"
+  },
+  "scripts": {
+    "dev": "bun --watch index.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.1.11",
+    "hono": "^3.12.8",
+    "mysql2": "^3.9.1",
+    "redis": "^4.6.12",
+    "zod": "^3.22.4"
+  }
+}
